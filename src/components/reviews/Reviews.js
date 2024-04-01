@@ -3,25 +3,17 @@ import api from "../../api/axiosConfig";
 import { useParams } from "react-router-dom";
 import { Container, Row, Col } from "react-bootstrap";
 import ReviewForm from "../reviewForm/ReviewForm";
+import { useState } from "react";
 
 const Reviews = ({getMovieData, movie, reviews=[], setReviews}) => {
     const revText = useRef();
     let params = useParams();
     const movieId = params.movieId
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         getMovieData(movieId)
-        const fetchReviews = async () => {
-            try {
-                const response = await api.get(`/reviews/${movieId}`);
-                const reviews = response.data;
-                setReviews(reviews);
-            } catch (e) {
-                console.log(e);
-            }
-        };
-        fetchReviews();
-    },[movieId])
+    },[])
 
     const addReview = async (e) => {
         e.preventDefault();
@@ -39,6 +31,22 @@ const Reviews = ({getMovieData, movie, reviews=[], setReviews}) => {
                 console.log(e)
         }
     }
+
+    useEffect(() => {
+        const fetchReviews = async () => {
+            try {
+                const response = await api.get(`/reviews/${movieId}`);
+                const reviews = response.data;
+                setReviews(reviews);
+                setLoading(false);
+            } catch (e) {
+                console.log(e);
+                setLoading(false);
+            }
+        };
+
+        fetchReviews();
+    },[movieId])
 
   return (
      <Container>
@@ -67,7 +75,9 @@ const Reviews = ({getMovieData, movie, reviews=[], setReviews}) => {
                     </>
                 }
                 {
-                    Array.isArray(reviews) && reviews.length > 0 ? (
+                    loading ? (
+                        <p>Loading reviews...</p>
+                      ) : Array.isArray(reviews) && reviews.length > 0 ? (
                         reviews.map((review) => (
                           <Row key={review.id}>
                             <Col>{review.body}</Col>
